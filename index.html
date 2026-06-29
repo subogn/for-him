@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gửi Anh 💌</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:#111;
+    overflow:hidden;
+}
+
+/* PHONG BÌ */
+
+#envelopePage{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    transition:opacity .8s ease;
+}
+#envelopePage h1{
+    margin-bottom:70px;
+}
+/* ---- Phong bì làm bằng CSS thật, không dùng icon ---- */
+
+.envelope-wrap{
+    cursor:pointer;
+    transition:.4s;
+}
+
+.envelope-wrap:hover{
+    transform:scale(1.06) translateY(-4px);
+}
+
+.envelope{
+    position:relative;
+    width:260px;
+    height:170px;
+    background:linear-gradient(135deg,#fff5f8,#ffe3ee);
+    border-radius:10px;
+    box-shadow:0 15px 35px rgba(255,105,180,.35);
+    overflow:hidden;
+}
+
+/* thân phong bì - 2 nếp gấp dưới */
+.envelope::before,
+.envelope::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    width:0;
+    height:0;
+    border-style:solid;
+}
+
+.envelope::before{
+    left:0;
+    border-width:0 0 85px 130px;
+    border-color:transparent transparent #ffd3e6 transparent;
+}
+
+.envelope::after{
+    right:0;
+    border-width:0 130px 85px 0;
+    border-color:transparent transparent #ffd3e6 transparent;
+}
+
+/* nắp phong bì (tam giác trên) */
+.flap{
+    position:absolute;
+    top:0;
+    left:0;
+    width:0;
+    height:0;
+    border-left:130px solid transparent;
+    border-right:130px solid transparent;
+    border-top:95px solid #ffb6d2;
+    z-index:2;
+    transform-origin:top center;
+    transition:transform 1s cubic-bezier(.6,.05,.3,1);
+}
+
+.envelope-wrap.opened .flap{
+    transform:rotateX(180deg);
+}
+
+/* con dấu trái tim ở giữa nắp */
+.seal{
+    position:absolute;
+    top:62px;
+    left:50%;
+    transform:translateX(-50%);
+    width:46px;
+    height:46px;
+    background:#ff4f9a;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:20px;
+    box-shadow:0 4px 10px rgba(0,0,0,.25);
+    z-index:3;
+    animation:pulse 1.6s infinite;
+}
+
+@keyframes pulse{
+    0%,100%{transform:translateX(-50%) scale(1);}
+    50%{transform:translateX(-50%) scale(1.12);}
+}
+
+/* lá thư trắng, ẨN khi phong bì đóng -> chỉ hiện dần khi mở để không bị lòi góc ra ngoài nắp */
+.paper-peek{
+    position:absolute;
+    top:30px;
+    left:50%;
+    transform:translateX(-50%) translateY(0) scale(.85);
+    width:170px;
+    height:60px;
+    background:#fff;
+    border-radius:4px;
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+    z-index:1;
+    opacity:0;
+    transition:transform 1s ease .4s, opacity 1s ease .4s;
+}
+
+.envelope-wrap.opened .paper-peek{
+    opacity:1;
+    transform:translateX(-50%) translateY(-95px) scale(1.35);
+    z-index:3;
+}
+
+.tip{
+    margin-top:25px;
+    color:pink;
+}
+
+/* THƯ */
+
+#letterPage{
+    display:none;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+    opacity:0;
+    transition:opacity .9s ease;
+}
+
+.letter{
+    background:white;
+    color:#333;
+    width:75%;
+    max-width:600px;
+    padding:35px;
+    border-radius:20px;
+    box-shadow:0 0 30px pink;
+    transform:scale(.7) translateY(40px);
+    min-height:420px;
+    opacity:0;
+    padding:35px;
+    transition:transform .9s cubic-bezier(.34,1.56,.64,1), opacity .9s ease;
+}
+
+.letter h2{
+    text-align:left;
+    margin-bottom:25px;
+}
+
+.letter.show{
+    transform:scale(1) translateY(0);
+    opacity:1;
+}
+
+.line{
+    opacity:0;
+    margin-top:20px;
+    font-size:20px;
+    transition:1s;
+}
+
+.final{
+    color:#ff4f9a;
+    font-size:34px;
+    font-weight:bold;
+}
+
+#continueBtn{
+    margin-top:30px;
+    padding:12px 24px; 
+    border:none; 
+    border-radius:10px; 
+    background:#ff69b4; 
+    color:white; 
+    cursor:pointer; 
+    font-size:18px; 
+    opacity:0; 
+    transform:translateY(20px); 
+    transition:.8s; 
+    pointer-events:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<audio id="voice" src="voice.mp3"></audio>
+
+<!-- PHONG BÌ -->
+
+<div id="envelopePage">
+
+    <h1>Có một lá thư dành cho anh 💌</h1>
+
+    <div class="envelope-wrap" id="openBtn">
+        <div class="envelope">
+            <div class="paper-peek"></div>
+            <div class="flap" id="flap"></div>
+            <div class="seal">❤</div>
+        </div>
+    </div>
+
+    <div class="tip">
+        Nhấn để mở thư
+    </div>
+
+</div>
+
+<!-- THƯ -->
+
+<div id="letterPage">
+
+    <div class="letter">
+
+        
+        <h2>Gửi anh,</h2>
+
+        <p class="line">
+            Có lẽ anh sẽ hơi bất ngờ khi nhận được lá thư này...
+        </p>
+
+        <p class="line">
+            Em không phải kiểu người dễ nói ra cảm xúc của mình.
+        </p>
+
+        <p class="line">
+            Nhiều lúc em suy nghĩ rất nhiều,
+            nhưng lại chẳng biết bắt đầu từ đâu.
+        </p>
+
+        <p class="line">
+            Nên cuối cùng em chọn cách này...
+        </p>
+
+        <p class="line">
+            Em làm ra cái này và gửi nó cho anh 😭
+        </p>
+
+        <p class="line">
+            Trước khi nói điều em muốn nói,
+            em muốn anh hiểu em thêm một chút.
+        </p>
+
+        <p class="line">
+            Vì vậy em đã chuẩn bị một mini game nhỏ phía sau đây ✨
+        </p>
+
+        <p class="line final">
+            Hy vọng anh sẽ thích nó ❤️
+        </p>
+
+        <button id="continueBtn">
+            Tiếp tục ❤️
+        </button>
+
+
+
+    </div>
+
+</div>
+
+<script>
+
+const openBtn = document.getElementById("openBtn");
+const voice = document.getElementById("voice");
+
+openBtn.onclick = () => {
+
+    if (openBtn.classList.contains("opened")) return; // tránh bấm nhiều lần
+
+    // 1. nắp phong bì mở ra, lá thư nhô lên & to dần
+    openBtn.classList.add("opened");
+
+    voice.play().catch(()=>{});
+
+    const envelopePage = document.getElementById("envelopePage");
+    const letterPage = document.getElementById("letterPage");
+    const letterBox = document.querySelector(".letter");
+
+    // 2. sau khi xem hiệu ứng mở thư xong, fade qua trang thư
+    setTimeout(()=>{
+
+        letterPage.style.display = "flex";
+
+        // ép trình duyệt nhận layout mới trước khi đổi opacity (để transition chạy)
+        requestAnimationFrame(()=>{
+
+            envelopePage.style.opacity = "0";
+            letterPage.style.opacity = "1";
+
+            setTimeout(()=>{
+                envelopePage.style.display = "none";
+            }, 800);
+
+        });
+
+        // 3. lá thư "bung" ra từ từ
+        setTimeout(()=>{
+
+            letterBox.classList.add("show");
+
+            const lines = document.querySelectorAll(".line");
+
+            lines.forEach((line,index)=>{
+
+                setTimeout(()=>{
+
+                    line.style.opacity = "1";
+
+                    if(index === lines.length - 1){
+
+                        setTimeout(()=>{
+
+                            const btn =
+                            document.getElementById("continueBtn");
+
+                            btn.style.opacity = "1";
+                            btn.style.transform = "translateY(0)";
+                            btn.style.pointerEvents = "auto";
+
+                        },1500);
+
+                    }
+
+                },700 + index * 2200);
+
+            });
+        }, 150);
+
+    }, 1500);
+
+};
+        
+document.getElementById("continueBtn").onclick = () => {
+
+    window.location.href = "game.html";
+
+};
+
+</script>
+
+</body>
+</html>

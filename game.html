@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Game Cho Anh 🎮</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#ffe3ee,#ffd3e6,#ffc2e0);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    width:90%;
+    max-width:480px;
+    padding:40px 30px;
+    border-radius:24px;
+    box-shadow:0 20px 50px rgba(255,105,180,.35);
+    text-align:center;
+    position:relative;
+    opacity:0;
+    transform:scale(.85) translateY(20px);
+    transition:transform .6s cubic-bezier(.34,1.56,.64,1), opacity .6s ease;
+}
+
+.card.show{
+    opacity:1;
+    transform:scale(1) translateY(0);
+}
+
+.progress{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:25px;
+}
+
+.dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:#ffd3e6;
+    transition:.4s;
+}
+
+.dot.active{
+    background:#ff4f9a;
+    transform:scale(1.3);
+}
+
+.question{
+    font-size:22px;
+    color:#333;
+    margin-bottom:30px;
+    line-height:1.5;
+    min-height:70px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.options{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.opt-row{
+    display:flex;
+    gap:14px;
+}
+
+.opt-row button{
+    flex:1;
+}
+
+button.choice{
+    padding:14px 18px;
+    border:2px solid #ffb6d2;
+    border-radius:14px;
+    background:#fff5f8;
+    color:#d6336c;
+    font-size:16px;
+    cursor:pointer;
+    transition:.25s;
+}
+
+button.choice:hover{
+    background:#ff69b4;
+    color:white;
+    transform:translateY(-2px);
+}
+
+button.final, button.submit-btn{
+    margin-top:10px;
+    padding:18px 30px;
+    border:none;
+    border-radius:16px;
+    background:linear-gradient(135deg,#ff4f9a,#ff85b3);
+    color:white;
+    font-size:20px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 10px 25px rgba(255,79,154,.5);
+    animation:bounce 1.4s infinite;
+    width:100%;
+}
+
+button.submit-btn:disabled{
+    opacity:.6;
+    cursor:default;
+    animation:none;
+}
+
+@keyframes bounce{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-6px);}
+}
+
+.emoji-big{
+    font-size:50px;
+    margin-bottom:10px;
+    display:block;
+}
+
+textarea.answer-box{
+    width:100%;
+    min-height:70px;
+    border:2px solid #ffb6d2;
+    border-radius:14px;
+    padding:14px;
+    font-size:15px;
+    font-family:inherit;
+    resize:none;
+    outline:none;
+    color:#333;
+    margin-bottom:16px;
+}
+
+textarea.answer-box:focus{
+    border-color:#ff4f9a;
+}
+
+.opt-divider{
+    font-size:12px;
+    color:#bbb;
+    margin:14px 0 10px;
+}
+
+button.choice.selected{
+    background:#ff69b4;
+    color:white;
+}
+
+button.confirm-btn{
+    margin-top:14px;
+    padding:13px 18px;
+    border:none;
+    border-radius:14px;
+    background:#ff4f9a;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    width:100%;
+}
+
+button.confirm-btn:disabled{
+    background:#ffd3e6;
+    cursor:default;
+}
+
+.status-msg{
+    font-size:13px;
+    color:#999;
+    margin-top:12px;
+    min-height:18px;
+}
+
+/* confetti */
+.confetti{
+    position:fixed;
+    top:-20px;
+    width:10px;
+    height:10px;
+    border-radius:2px;
+    opacity:.9;
+    animation:fall linear forwards;
+    z-index:99;
+}
+
+@keyframes fall{
+    to{
+        transform:translateY(110vh) rotate(540deg);
+        opacity:0;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card" id="card">
+
+    <div class="progress" id="progress"></div>
+
+    <div id="content"></div>
+
+</div>
+
+<script>
+
+/* ====== CẤU HÌNH GỬI EMAIL (Web3Forms) ====== */
+/* Dán Access Key bạn lấy từ web3forms.com vào đây */
+const WEB3FORMS_KEY = "DÁN_ACCESS_KEY_CỦA_BẠN_VÀO_ĐÂY";
+
+/* ====== DANH SÁCH CÂU HỎI ======
+   Mỗi câu có:
+   - labelLeft  = "Ý em"  -> mang nghĩa ĐỒNG Ý
+   - labelRight = "Ý anh" -> mang nghĩa TỪ CHỐI (nhưng vẫn lái vui vẻ, không cho thoát game)
+   - placeholder = gợi ý cho ô nhập tự do bên dưới 2 nút (không bắt buộc nhập)
+   Câu cuối "isLast:true" sẽ luôn render nút Đồng Ý to để kết thúc game
+*/
+const questions = [
+    {
+        emoji:"🌷",
+        q:"Nếu phải chọn một điều giống em nhất, anh sẽ chọn điều nào?",
+        labelLeft:"Người hay quan tâm những điều nhỏ nhặt 🌸",
+        labelRight:"Người lúc nào cũng mạnh mẽ 😎",
+        placeholder:"Anh có nhận xét gì về em không?",
+        rejectReply:"Hihi em cũng muốn mạnh mẽ lắm, nhưng nhiều lúc vẫn mềm lòng lắm á 😆"
+    },
+
+    {
+        emoji:"☕",
+        q:"Theo anh, em thuộc kiểu người nào?",
+        labelLeft:"Ít nói lúc mới quen nhưng thân rồi nói nhiều 😆",
+        labelRight:"Hoạt náo mọi lúc mọi nơi 🎤",
+        placeholder:"Ấn tượng đầu tiên của anh về em là gì?",
+        rejectReply:"Ước gì em hoạt náo được như vậy thật 🤣"
+    },
+
+    {
+        emoji:"🎵",
+        q:"Nếu có một ngày em buồn, anh nghĩ điều gì làm em vui nhất?",
+        labelLeft:"Có người chịu lắng nghe em nói 💕",
+        labelRight:"Một món quà thật đắt 🎁",
+        placeholder:"Nếu là anh thì anh sẽ làm gì?",
+        rejectReply:"Quà thích thật đó, nhưng được lắng nghe vẫn quý hơn nhiều 🥺"
+    },
+
+    {
+        emoji:"✨",
+        q:"Điều em trân trọng nhất trong một mối quan hệ là gì?",
+        labelLeft:"Sự chân thành ❤️",
+        labelRight:"Những lời ngọt ngào là đủ 🌸",
+        placeholder:"Anh nghĩ điều gì quan trọng nhất?",
+        rejectReply:"Nghe lời ngọt ngào thích lắm, nhưng em vẫn tin sự chân thành hơn 😌"
+    },
+
+    {
+        emoji:"🌙",
+        q:"Nếu phải miêu tả em bằng một từ, anh sẽ chọn từ nào?",
+        labelLeft:"Chân thành 🌷",
+        labelRight:"Khó đoán 🤔",
+        placeholder:"Anh muốn dùng từ gì để miêu tả em?",
+        rejectReply:"Cũng đúng á 😆 đôi lúc chính em còn không hiểu mình nữa."
+    },
+
+    {
+        emoji:"💌",
+        q:"Sau khi biết thêm một chút về em...",
+        labelLeft:"Em là người anh muốn tìm hiểu thêm ❤️",
+        labelRight:"Anh cần thêm thời gian để hiểu em hơn 🌱",
+        placeholder:"Nếu muốn, anh có thể nhắn em vài lời ở đây...",
+        isLast:true
+    }
+];
+
+
+
+let step = 0;
+const content = document.getElementById("content");
+const progress = document.getElementById("progress");
+const card = document.getElementById("card");
+
+// lưu lại toàn bộ câu hỏi + lựa chọn + phần ảnh gõ thêm để gửi email cuối cùng
+const collectedAnswers = [];
+
+function renderProgress(){
+    progress.innerHTML = "";
+    for(let i=0;i<questions.length+1;i++){
+        const d = document.createElement("div");
+        d.className = "dot" + (i<=step ? " active" : "");
+        progress.appendChild(d);
+    }
+}
+
+function renderQuestion(){
+
+    renderProgress();
+
+    const item = questions[step];
+    let selectedSide = null;
+
+    content.innerHTML = `
+        <span class="emoji-big">${item.emoji}</span>
+        <div class="question">${item.q}</div>
+        <div class="options">
+            <div class="opt-row">
+                <button class="choice" data-side="em">${item.labelLeft}</button>
+                <button class="choice" data-side="anh">${item.labelRight}</button>
+            </div>
+        </div>
+        <div class="opt-divider">Anh có thể gõ thêm vài dòng ở đây 👇</div>
+        <textarea class="answer-box" id="freeText" placeholder="${item.placeholder}"></textarea>
+        <button class="confirm-btn" id="confirmBtn" disabled>Chọn 1 đáp án ở trên trước nha</button>
+    `;
+
+    const confirmBtn = document.getElementById("confirmBtn");
+
+    document.querySelectorAll(".choice").forEach(btn=>{
+        btn.onclick = () => {
+            document.querySelectorAll(".choice").forEach(b=>b.classList.remove("selected"));
+            btn.classList.add("selected");
+            selectedSide = btn.dataset.side;
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = item.isLast ? "Xác nhận 💍" : "Xác nhận, qua câu tiếp theo";
+        };
+    });
+
+    confirmBtn.onclick = () => {
+
+        if(!selectedSide) return;
+
+        const label = selectedSide === "em" ? item.labelLeft : item.labelRight;
+        const freeText = document.getElementById("freeText").value.trim();
+
+        collectedAnswers.push({
+            question: item.q,
+            choice: label,
+            note: freeText || "(không có)"
+        });
+
+        if(item.isLast){
+            renderFinal();
+            return;
+        }
+
+        if(selectedSide === "anh"){
+            // bấm "từ chối" -> vẫn lái vui vẻ, không cho thoát, qua câu tiếp theo luôn
+            content.innerHTML = `
+                <span class="emoji-big">😆</span>
+                <div class="question">${item.rejectReply}</div>
+            `;
+            pulseCard();
+            setTimeout(()=>{
+                step++;
+                renderQuestion();
+            }, 1400);
+        } else {
+            step++;
+            renderQuestion();
+        }
+    };
+
+    pulseCard();
+}
+
+function renderFinal(){
+
+    step = questions.length;
+    renderProgress();
+
+    content.innerHTML = `
+        <span class="emoji-big">💖</span>
+       
+        <div class="question">
+            💖
+
+            Cảm ơn anh vì đã dành thời gian
+            đi hết mini game này.
+
+            Có lẽ giờ anh đã hiểu em
+            thêm một chút rồi.
+
+            Và điều cuối cùng em muốn nói là...
+
+            Em thích anh ❤️
+        </div>
+
+
+        <button class="final" id="finalBtn">Xem điều cuối cùng em muốn gửi anh ✨</button>
+        <div class="status-msg" id="statusMsg"></div>
+    `;
+
+    document.getElementById("finalBtn").onclick = () => {
+
+        const btn = document.getElementById("finalBtn");
+        btn.disabled = true;
+        btn.textContent = "Đang gửi...";
+        document.getElementById("statusMsg").textContent = "";
+
+        launchConfetti();
+
+        sendResultsByEmail()
+            .then(()=>{
+                document.getElementById("statusMsg").textContent = "Đã gửi xong 💌";
+            })
+            .catch(()=>{
+                document.getElementById("statusMsg").textContent = "Gửi chưa thành công, nhưng vẫn tiếp tục nha";
+            })
+            .finally(()=>{
+                setTimeout(()=>{
+                    window.location.href = "heart.html";
+                }, 1400);
+            });
+    };
+
+    pulseCard();
+}
+
+function sendResultsByEmail(){
+
+    // Build nội dung email từ toàn bộ câu hỏi + lựa chọn + phần ảnh gõ thêm
+    const lines = collectedAnswers.map((item, idx) =>
+        `${idx+1}. ${item.question}\n   -> Đã chọn: ${item.choice}\n   -> Anh viết thêm: ${item.note}`
+    ).join("\n\n");
+
+    const formData = new FormData();
+    formData.append("access_key", WEB3FORMS_KEY);
+    formData.append("subject", "Kết quả mini game của ảnh 💌");
+    formData.append("from_name", "Mini Game Tình Yêu");
+    formData.append("message", lines);
+
+    return fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+    }).then(res => res.json());
+}
+
+function pulseCard(){
+    card.classList.remove("show");
+    requestAnimationFrame(()=>{
+        card.classList.add("show");
+    });
+}
+
+function launchConfetti(){
+    const colors = ["#ff4f9a","#ff85b3","#ffd3e6","#ff69b4","#fff"];
+    for(let i=0;i<60;i++){
+        const c = document.createElement("div");
+        c.className = "confetti";
+        c.style.left = Math.random()*100 + "vw";
+        c.style.background = colors[Math.floor(Math.random()*colors.length)];
+        c.style.animationDuration = (Math.random()*1.5 + 1.5) + "s";
+        c.style.width = c.style.height = (Math.random()*6+6)+"px";
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(), 3200);
+    }
+}
+
+renderQuestion();
+
+</script>
+
+</body>
+</html>
