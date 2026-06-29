@@ -439,31 +439,26 @@ function renderFinal(){
         <button class="final" id="finalBtn">
         Xem điều cuối cùng em muốn gửi anh ✨
         </button>
+        <div id="statusMsg" class="status-msg"></div>
         `;
 
     document.getElementById("finalBtn").onclick = () => {
 
-        const btn = document.getElementById("finalBtn");
-        btn.disabled = true;
-        btn.textContent = "Đang gửi...";
-        document.getElementById("statusMsg").textContent = "";
+    const btn = document.getElementById("finalBtn");
 
-        launchConfetti();
+    btn.disabled = true;
+    btn.textContent = "Đang mở điều cuối cùng... ❤️";
 
-        sendResultsByEmail()
-            .then(()=>{
-                document.getElementById("statusMsg").textContent = "Đã gửi xong 💌";
-            })
-            .catch(()=>{
-                document.getElementById("statusMsg").textContent = "Gửi chưa thành công, nhưng vẫn tiếp tục nha";
-            })
-            setTimeout(()=>{
-                window.location.href = "heart.html";
-            },1500);
+    launchConfetti();
 
-            sendResultsByEmail().catch(console.error);
-    };
+    // gửi mail nền
+    sendResultsByEmail().catch(console.error);
 
+    // luôn chuyển trang
+    setTimeout(()=>{
+        window.location.href = "heart.html";
+    },1500);
+};
     pulseCard();
 }
 
