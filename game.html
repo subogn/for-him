@@ -80,17 +80,38 @@ body{
     gap:14px;
 }
 
+.opt-row{
+    display:flex;
+    gap:12px;
+    width:100%;
+}
+
 @media(max-width:600px){
 
     .opt-row{
-        flex-direction:column;
+        gap:10px;
+    }
+
+    .opt-row button{
+        min-height:100px;
+        font-size:14px;
     }
 
 }
-
 .opt-row button{
     flex:1;
+    min-height:90px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    text-align:center;
+    line-height:1.4;
+
+    padding:12px;
 }
+
 
 button.choice{
     padding:14px 18px;
