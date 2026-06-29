@@ -457,11 +457,11 @@ function renderFinal(){
             .catch(()=>{
                 document.getElementById("statusMsg").textContent = "Gửi chưa thành công, nhưng vẫn tiếp tục nha";
             })
-            .finally(()=>{
-                setTimeout(()=>{
-                    window.location.href = "heart.html";
-                }, 1400);
-            });
+            setTimeout(()=>{
+                window.location.href = "heart.html";
+            },1500);
+
+            sendResultsByEmail().catch(console.error);
     };
 
     pulseCard();
@@ -469,23 +469,34 @@ function renderFinal(){
 
 function sendResultsByEmail(){
 
-    // Build nội dung email từ toàn bộ câu hỏi + lựa chọn + phần ảnh gõ thêm
     const lines = collectedAnswers.map((item, idx) =>
-        `${idx+1}. ${item.question}\n   -> Đã chọn: ${item.choice}\n   -> Anh viết thêm: ${item.note}`
+        `${idx+1}. ${item.question}
+        -> ${item.choice}
+        -> ${item.note}`
     ).join("\n\n");
 
     const formData = new FormData();
     formData.append("access_key", WEB3FORMS_KEY);
-    formData.append("subject", "Kết quả mini game của ảnh 💌");
-    formData.append("from_name", "Mini Game Tình Yêu");
+    formData.append("subject", "Kết quả mini game");
     formData.append("message", lines);
 
     return fetch("https://api.web3forms.com/submit", {
         method: "POST",
         body: formData
-    }).then(res => res.json());
-}
+    })
+    .then(async res => {
 
+        const data = await res.json();
+
+        console.log(data);
+
+        if(!data.success){
+            throw new Error(data.message);
+        }
+
+        return data;
+    });
+}
 function pulseCard(){
     card.classList.remove("show");
     requestAnimationFrame(()=>{
