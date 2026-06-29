@@ -16,7 +16,8 @@
 
 body{
     background:#111;
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:auto;
 }
 
 /* PHONG BÌ */
@@ -152,26 +153,34 @@ body{
 
 #letterPage{
     display:none;
-    height:100vh;
+    min-height:100vh;
     justify-content:center;
     align-items:center;
     opacity:0;
     transition:opacity .9s ease;
+    padding:30px 15px;
 }
 
 .letter{
     background:white;
     color:#333;
-    width:75%;
-    max-width:600px;
+
+    width:90%;
+    max-width:650px;
+
     padding:35px;
+
     border-radius:20px;
-    box-shadow:0 0 30px pink;
+
+    box-shadow:0 0 30px rgba(255,105,180,.4);
+
     transform:scale(.7) translateY(40px);
-    min-height:420px;
+
     opacity:0;
-    padding:35px;
-    transition:transform .9s cubic-bezier(.34,1.56,.64,1), opacity .9s ease;
+
+    transition:
+    transform .9s cubic-bezier(.34,1.56,.64,1),
+    opacity .9s ease;
 }
 
 .letter h2{
@@ -186,8 +195,9 @@ body{
 
 .line{
     opacity:0;
-    margin-top:20px;
+    margin-top:18px;
     font-size:20px;
+    line-height:1.8;
     transition:1s;
 }
 
@@ -211,7 +221,54 @@ body{
     transition:.8s; 
     pointer-events:none;
 }
+@media (max-width:768px){
 
+    #envelopePage h1{
+        font-size:28px;
+        text-align:center;
+        padding:0 20px;
+        margin-bottom:50px;
+    }
+
+    .envelope{
+        width:220px;
+        height:145px;
+    }
+
+    .flap{
+        border-left:110px solid transparent;
+        border-right:110px solid transparent;
+        border-top:80px solid #ffb6d2;
+    }
+
+    .seal{
+        top:50px;
+    }
+
+    .letter{
+        width:95%;
+        padding:25px;
+    }
+
+    .letter h2{
+        font-size:30px;
+    }
+
+    .line{
+        font-size:17px;
+    }
+
+    .final{
+        font-size:28px;
+    }
+
+    #continueBtn{
+        width:100%;
+        padding:15px;
+        font-size:18px;
+    }
+
+}
 </style>
 </head>
 

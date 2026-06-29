@@ -26,9 +26,9 @@ body{
 
 .card{
     background:white;
-    width:90%;
-    max-width:480px;
-    padding:40px 30px;
+    width:95%;
+    max-width:500px;
+    padding:25px 20px;
     border-radius:24px;
     box-shadow:0 20px 50px rgba(255,105,180,.35);
     text-align:center;
@@ -64,7 +64,7 @@ body{
 }
 
 .question{
-    font-size:22px;
+    font-size:20px;
     color:#333;
     margin-bottom:30px;
     line-height:1.5;
@@ -80,9 +80,12 @@ body{
     gap:14px;
 }
 
-.opt-row{
-    display:flex;
-    gap:14px;
+@media(max-width:600px){
+
+    .opt-row{
+        flex-direction:column;
+    }
+
 }
 
 .opt-row button{
@@ -210,7 +213,33 @@ button.confirm-btn:disabled{
         opacity:0;
     }
 }
+@media(max-width:600px){
 
+    .card{
+        width:95%;
+        padding:22px 18px;
+        border-radius:20px;
+    }
+
+    .question{
+        font-size:18px;
+        min-height:auto;
+    }
+
+    button.choice{
+        font-size:15px;
+    }
+
+    button.final,
+    button.confirm-btn{
+        font-size:16px;
+    }
+
+    .emoji-big{
+        font-size:42px;
+    }
+
+}
 </style>
 </head>
 
@@ -285,9 +314,9 @@ const questions = [
 
     {
         emoji:"💌",
-        q:"Sau khi biết thêm một chút về em...",
-        labelLeft:"Em là người anh muốn tìm hiểu thêm ❤️",
-        labelRight:"Anh cần thêm thời gian để hiểu em hơn 🌱",
+        q:"Sau khi đi hết mini game này...",
+        labelLeft:"Anh thấy em khá thú vị 🌷",
+        labelRight:"Anh muốn tìm hiểu thêm trước đã 🌱",
         placeholder:"Nếu muốn, anh có thể nhắn em vài lời ở đây...",
         isLast:true
     }
@@ -390,25 +419,27 @@ function renderFinal(){
 
     content.innerHTML = `
         <span class="emoji-big">💖</span>
-       
+
         <div class="question">
-            💖
 
-            Cảm ơn anh vì đã dành thời gian
-            đi hết mini game này.
+        Cảm ơn anh vì đã dành thời gian
+        đi hết mini game này.
 
-            Có lẽ giờ anh đã hiểu em
-            thêm một chút rồi.
+        Có lẽ giờ anh đã hiểu em
+        thêm một chút rồi.
 
-            Và điều cuối cùng em muốn nói là...
+        Em không mong anh phải trả lời điều gì ngay cả.
 
-            Em thích anh ❤️
+        Em chỉ muốn nói rằng...
+
+        Em thật sự quý anh ❤️
+
         </div>
 
-
-        <button class="final" id="finalBtn">Xem điều cuối cùng em muốn gửi anh ✨</button>
-        <div class="status-msg" id="statusMsg"></div>
-    `;
+        <button class="final" id="finalBtn">
+        Xem điều cuối cùng em muốn gửi anh ✨
+        </button>
+        `;
 
     document.getElementById("finalBtn").onclick = () => {
 
